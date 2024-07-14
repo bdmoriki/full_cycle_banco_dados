@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -41,6 +43,30 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	p, err := selecionarUmProduto(db, produto.ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("O produto %s, possui o preço de %.2f", p.Nome, p.Preco)
+}
+
+func selecionarUmProduto(db *sql.DB, id string) (*Produto, error) {
+	stmt, err := db.Prepare("select id, name, price from products where id =?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var p Produto
+
+	//err = stmt.QueryRow(id).Scan(&p.ID, &p.Nome, &p.Preco)
+	err = stmt.QueryRowContext(context.Background(), id).Scan(&p.ID, &p.Nome, &p.Preco)
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
 }
 
 func inserirProduto(db *sql.DB, produto *Produto) error {
