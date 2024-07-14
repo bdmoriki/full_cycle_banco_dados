@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -33,6 +34,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	produto.Nome = "Macbook"
+
+	err = atualizarProduto(db, produto)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func inserirProduto(db *sql.DB, produto *Produto) error {
@@ -43,6 +51,21 @@ func inserirProduto(db *sql.DB, produto *Produto) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(produto.ID, produto.Nome, produto.Preco)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func atualizarProduto(db *sql.DB, produto *Produto) error {
+	stmt, err := db.Prepare("update products set name = ?, price = ? where id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	log.Printf("Atualizando o produto com o id %s \n", produto.ID)
+	_, err = stmt.Exec(produto.Nome, produto.Preco, produto.ID)
 	if err != nil {
 		return err
 	}
