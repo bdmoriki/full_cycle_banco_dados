@@ -44,13 +44,28 @@ func main() {
 		panic(err)
 	}
 
-	p, err := selecionarUmProduto(db, produto.ID)
+	// p, err := selecionarUmProduto(db, produto.ID)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("O produto %s, possui o preço de %.2f \n", p.Nome, p.Preco)
+
+	produtos, err := selecionarTodosProdutos(db)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("O produto %s, possui o preço de %.2f \n", p.Nome, p.Preco)
+	for _, p := range produtos {
+		fmt.Printf("O produto %s, possui o preço de %.2f \n", p.Nome, p.Preco)
+	}
 
-	produtos, err := selecionarTodosProdutos(db)
+	err = deletarProduto(db, produto.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Lista de produtos após a exclusão...")
+
+	produtos, err = selecionarTodosProdutos(db)
 	if err != nil {
 		panic(err)
 	}
@@ -122,5 +137,20 @@ func atualizarProduto(db *sql.DB, produto *Produto) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func deletarProduto(db *sql.DB, id string) error {
+	stmt, err := db.Prepare("delete from products where id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
